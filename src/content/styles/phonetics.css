@@ -1,0 +1,80 @@
+/**
+ * 音标样式
+ */
+
+/* 文本包装器 */
+.elh-text-wrapper {
+  display: inline;
+}
+
+/* 单词容器 */
+.elh-word {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  vertical-align: baseline;
+  transition: background-color 0.2s ease;
+  border-radius: 3px;
+  padding-bottom: 1em; /* Space for phonetic */
+}
+
+.elh-word:hover {
+  background-color: rgba(66, 133, 244, 0.1);
+}
+
+/* 单词文本 */
+.elh-word-text {
+  display: inline;
+  line-height: inherit;
+}
+
+/* 音标 */
+.elh-phonetic {
+  display: block;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  font-size: 0.7em;
+  color: #888;
+  font-family: "Lucida Sans Unicode", "Arial Unicode MS", sans-serif;
+  line-height: 1;
+  opacity: 0.85;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  pointer-events: none;
+}
+
+.elh-word:hover .elh-phonetic {
+  opacity: 1;
+  color: #4285f4;
+}
+
+/* 空音标隐藏 */
+.elh-phonetic:empty {
+  display: none;
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+  .elh-word:hover {
+    background-color: rgba(138, 180, 248, 0.15);
+  }
+
+  .elh-phonetic {
+    color: #aaa;
+  }
+
+  .elh-word:hover .elh-phonetic {
+    color: #8ab4f8;
+  }
+}
+
+/* 字体大小变体 */
+.elh-font-small .elh-phonetic {
+  font-size: 0.55em;
+}
+
+.elh-font-large .elh-phonetic {
+  font-size: 0.75em;
+}

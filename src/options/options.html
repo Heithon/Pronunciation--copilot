@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - English Learning Helper</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header class="options-header">
+      <div class="header-content">
+        <div class="logo">📚</div>
+        <div class="header-text">
+          <h1>English Learning Helper</h1>
+          <p>设置</p>
+        </div>
+      </div>
+    </header>
+    
+    <main class="options-content">
+      <!-- API 配置 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">🔑</span>
+          API 配置
+        </h2>
+        <div class="settings-card">
+          <div class="setting-item">
+            <label for="apiKey" class="setting-label">
+              <span class="label-text">Google Gemini API Key</span>
+              <span class="label-hint">用于 AI 分析和语音合成功能</span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="apiKey" class="input-field" placeholder="输入你的 API Key">
+              <button type="button" id="toggleApiKey" class="btn-icon" title="显示/隐藏">👁️</button>
+            </div>
+            <div class="api-status" id="apiKeyStatus"></div>
+          </div>
+          <div class="setting-actions">
+            <button id="validateApiKey" class="btn btn-outline">验证 API Key</button>
+            <button id="saveApiKey" class="btn btn-primary">保存</button>
+          </div>
+          <div class="setting-help">
+            <p>👉 <a href="https://aistudio.google.com/app/apikey" target="_blank">获取 Gemini API Key</a></p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 功能设置 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">⚙️</span>
+          功能设置
+        </h2>
+        <div class="settings-card">
+          <label class="toggle-setting">
+            <div class="toggle-info">
+              <span class="toggle-title">显示音标</span>
+              <span class="toggle-desc">在英文单词下方显示 IPA 音标</span>
+            </div>
+            <input type="checkbox" id="enablePhonetics" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          
+          <label class="toggle-setting">
+            <div class="toggle-info">
+              <span class="toggle-title">词典弹窗</span>
+              <span class="toggle-desc">点击单词显示词典解析弹窗</span>
+            </div>
+            <input type="checkbox" id="enableDictionary" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          
+          <label class="toggle-setting">
+            <div class="toggle-info">
+              <span class="toggle-title">语音朗读</span>
+              <span class="toggle-desc">选中文本后可朗读</span>
+            </div>
+            <input type="checkbox" id="enableTTS" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+      
+      <!-- 显示设置 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">🎨</span>
+          显示设置
+        </h2>
+        <div class="settings-card">
+          <div class="setting-item">
+            <label class="setting-label">
+              <span class="label-text">主题模式</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="theme" value="auto" checked>
+                <span class="radio-label">跟随系统</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="theme" value="light">
+                <span class="radio-label">浅色</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="theme" value="dark">
+                <span class="radio-label">深色</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">
+              <span class="label-text">音标字号</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="fontSize" value="small">
+                <span class="radio-label">小</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fontSize" value="medium" checked>
+                <span class="radio-label">中</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="fontSize" value="large">
+                <span class="radio-label">大</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 语音设置 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">🔊</span>
+          语音设置
+        </h2>
+        <div class="settings-card">
+          <div class="setting-item">
+            <label for="ttsSpeed" class="setting-label">
+              <span class="label-text">朗读速度</span>
+              <span class="label-value" id="ttsSpeedValue">1.0x</span>
+            </label>
+            <input type="range" id="ttsSpeed" class="range-slider" min="0.5" max="2" step="0.1" value="1">
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">
+              <span class="label-text">语音引擎</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="ttsEngine" value="gemini" checked>
+                <span class="radio-label">Gemini TTS（需 API Key）</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="ttsEngine" value="web">
+                <span class="radio-label">浏览器内置</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 关于 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">ℹ️</span>
+          关于
+        </h2>
+        <div class="settings-card about-card">
+          <div class="about-info">
+            <p><strong>版本：</strong>1.0.0</p>
+            <p><strong>功能：</strong>英语学习助手，支持音标显示、词典查询、AI 语境分析和语音朗读</p>
+          </div>
+          <div class="about-links">
+            <a href="https://github.com" target="_blank" class="about-link">📦 GitHub</a>
+            <a href="#" class="about-link" id="resetSettings">🔄 重置设置</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <div class="toast" id="toast"></div>
+  </div>
+  
+  <script type="module" src="options.js"></script>
+</body>
+</html>

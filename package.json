@@ -1,0 +1,30 @@
+{
+  "name": "english-learning-helper",
+  "version": "1.0.0",
+  "description": "英语学习助手 - Chrome Extension with phonetics, dictionary, AI analysis, and TTS",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/post-build.js",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "chrome-extension",
+    "english",
+    "learning",
+    "phonetics",
+    "dictionary",
+    "IPA"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.3.0",
+    "@types/chrome": "^0.1.33",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cmu-pronouncing-dictionary": "^3.0.0"
+  }
+}

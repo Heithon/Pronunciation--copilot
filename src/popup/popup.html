@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>English Learning Helper</title>
+    <link
+      rel="stylesheet"
+      href="popup.css"
+    />
+  </head>
+  <body>
+    <div class="popup-container">
+      <header class="popup-header">
+        <div class="logo">📚</div>
+        <h1>English Learning Helper</h1>
+      </header>
+
+      <main class="popup-content">
+        <div class="status-section">
+          <div class="status-item">
+            <span class="status-label">插件状态</span>
+            <span
+              class="status-badge active"
+              id="extensionStatus"
+            >
+              已启用
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">API 配置</span>
+            <span
+              class="status-badge"
+              id="apiStatus"
+            >
+              未配置
+            </span>
+          </div>
+        </div>
+
+        <div class="toggle-section">
+          <label class="toggle-item">
+            <span class="toggle-label">
+              <span class="toggle-icon">📖</span>
+              显示音标
+            </span>
+            <input
+              type="checkbox"
+              id="enablePhonetics"
+              checked
+            />
+            <span class="toggle-slider"></span>
+          </label>
+
+          <label class="toggle-item">
+            <span class="toggle-label">
+              <span class="toggle-icon">📕</span>
+              词典弹窗
+            </span>
+            <input
+              type="checkbox"
+              id="enableDictionary"
+              checked
+            />
+            <span class="toggle-slider"></span>
+          </label>
+
+          <label class="toggle-item">
+            <span class="toggle-label">
+              <span class="toggle-icon">🔊</span>
+              语音朗读
+            </span>
+            <input
+              type="checkbox"
+              id="enableTTS"
+              checked
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="action-section">
+          <button
+            class="btn btn-primary"
+            id="openOptions"
+          >
+            ⚙️ 打开设置
+          </button>
+          <button
+            class="btn btn-secondary"
+            id="refreshPage"
+          >
+            🔄 刷新页面
+          </button>
+        </div>
+      </main>
+
+      <footer class="popup-footer">
+        <span>v1.0.0</span>
+        <a
+          href="#"
+          id="helpLink"
+        >
+          帮助
+        </a>
+      </footer>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
