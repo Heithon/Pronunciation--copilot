@@ -55,6 +55,16 @@
   display: none;
 }
 
+/* 全局隐藏音标（通过body类控制） */
+body.elh-hide-phonetics .elh-phonetic {
+  display: none !important;
+}
+
+/* 隐藏音标时移除padding，恢复原始布局 */
+body.elh-hide-phonetics .elh-word {
+  padding-bottom: 0 !important;
+}
+
 /* 暗色模式 */
 @media (prefers-color-scheme: dark) {
   .elh-word:hover {

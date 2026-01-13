@@ -56,6 +56,20 @@ async function loadSettings() {
       radio.checked = radio.value === (settings.ttsEngine || 'gemini');
     });
     
+    // 词典API选择
+    const dictionaryAPI = document.getElementById('dictionaryAPI');
+    dictionaryAPI.value = settings.dictionaryAPI || 'freedict';
+    toggleBaiduSettings(dictionaryAPI.value === 'baidu');
+    
+    // 加载百度API密钥
+    const baiduData = await chrome.storage.local.get(['baiduAppId', 'baiduSecret']);
+    if (baiduData.baiduAppId) {
+      document.getElementById('baiduAppId').value = baiduData.baiduAppId;
+    }
+    if (baiduData.baiduSecret) {
+      document.getElementById('baiduSecret').placeholder = '••••••••••••••••';
+    }
+    
   } catch (error) {
     console.error('Failed to load settings:', error);
     showToast('加载设置失败', 'error');
@@ -77,6 +91,25 @@ function setupEventListeners() {
   
   // 保存 API Key
   document.getElementById('saveApiKey').addEventListener('click', saveApiKey);
+  
+  // 词典API选择
+  document.getElementById('dictionaryAPI').addEventListener('change', (e) => {
+    toggleBaiduSettings(e.target.value === 'baidu');
+    saveDictionarySettings();
+  });
+  
+  // 百度密钥显示/隐藏
+  document.getElementById('toggleBaiduSecret')?.addEventListener('click', () => {
+    const input = document.getElementById('baiduSecret');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+  
+  // 百度API设置改变
+  document.getElementById('baiduAppId')?.addEventListener('change', saveDictionarySettings);
+  document.getElementById('baiduSecret')?.addEventListener('change', saveDictionarySettings);
+  
+  // 验证百度API
+  document.getElementById('validateBaiduApi')?.addEventListener('click', validateBaiduApi);
   
   // 功能开关
   const toggles = ['enablePhonetics', 'enableDictionary', 'enableTTS'];
@@ -191,7 +224,8 @@ async function saveSettings() {
     theme: document.querySelector('input[name="theme"]:checked')?.value || 'auto',
     fontSize: document.querySelector('input[name="fontSize"]:checked')?.value || 'medium',
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value) || 1,
-    ttsEngine: document.querySelector('input[name="ttsEngine"]:checked')?.value || 'gemini'
+    ttsEngine: document.querySelector('input[name="ttsEngine"]:checked')?.value || 'gemini',
+    dictionaryAPI: document.getElementById('dictionaryAPI')?.value || 'freedict'
   };
   
   try {
@@ -216,4 +250,95 @@ function showToast(message, type = 'info') {
   setTimeout(() => {
     toast.className = 'toast';
   }, 3000);
+}
+
+/**
+ * 切换百度设置显示
+ */
+function toggleBaiduSettings(show) {
+  const baiduSettings = document.getElementById('baiduSettings');
+  if (baiduSettings) {
+    baiduSettings.style.display = show ? 'block' : 'none';
+  }
+}
+
+/**
+ * 保存词典设置
+ */
+async function saveDictionarySettings() {
+  const dictionaryAPI = document.getElementById('dictionaryAPI').value;
+  const baiduAppId = document.getElementById('baiduAppId')?.value.trim() || '';
+  const baiduSecret = document.getElementById('baiduSecret')?.value.trim() || '';
+  
+  try {
+    // 保存词典API选择到settings
+    const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+    const settings = response.settings || {};
+    settings.dictionaryAPI = dictionaryAPI;
+    
+    await chrome.runtime.sendMessage({
+      type: 'SAVE_SETTINGS',
+      settings
+    });
+    
+    // 保存百度API密钥
+    if (dictionaryAPI === 'baidu') {
+      await chrome.storage.local.set({
+        baiduAppId,
+        baiduSecret
+      });
+    }
+    
+    showToast('词典设置已保存', 'success');
+  } catch (error) {
+    console.error('Save error:', error);
+    showToast('保存失败', 'error');
+  }
+}
+
+/**
+ * ��֤�ٶ�API
+ */
+async function validateBaiduApi() {
+  const appId = document.getElementById('baiduAppId')?.value.trim();
+  const secret = document.getElementById('baiduSecret')?.value.trim();
+  const status = document.getElementById('baiduApiStatus');
+  
+  if (!appId || !secret) {
+    status.textContent = '��������APP ID����Կ';
+    status.className = 'api-status warning';
+    return;
+  }
+  
+  status.textContent = '��֤��...';
+  status.className = 'api-status';
+  
+  try {
+    // �ȱ�����Կ
+    await chrome.storage.local.set({
+      baiduAppId: appId,
+      baiduSecret: secret
+    });
+    
+    // ���Է���һ���򵥵Ĵ�
+    const response = await chrome.runtime.sendMessage({
+      type: 'LOOKUP_WORD',
+      word: 'hello',
+      api: 'baidu'
+    });
+    
+    console.log('[Validate Baidu] Response:', response);
+    
+    if (response.success) {
+      status.textContent = ' API��֤�ɹ���';
+      status.className = 'api-status success';
+    } else {
+      status.textContent = ` ��֤ʧ��: ${response.error || 'δ֪����'}`;
+      status.className = 'api-status error';
+    }
+  } catch (error) {
+    console.error('[Validate Baidu] Error:', error);
+    status.textContent = `��֤ʧ�ܣ�${error.message}`;
+    status.className = 'api-status error';
+  }
 }

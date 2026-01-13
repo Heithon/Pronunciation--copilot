@@ -14,27 +14,42 @@ const phoneticsCache = new Map();
 const WORD_REGEX = /\b[a-zA-Z]{2,}\b/g;
 
 // 已处理的节点 WeakSet
-const processedNodes = new WeakSet();
+let processedNodes = new WeakSet();
 
 // 处理队列
 let processingQueue = [];
 let isProcessing = false;
 
+// MutationObserver 引用
+let phoneticsObserver = null;
+
 /**
  * 初始化音标模块
  */
 export function initPhonetics() {
+  console.log('[Phonetics] Initializing phonetics module...');
+  
+  // 移除隐藏类，显示音标
+  document.body.classList.remove('elh-hide-phonetics');
+  
+  // 如果已经有observer在运行，不需要重复初始化
+  if (phoneticsObserver) {
+    console.log('[Phonetics] Observer already running, just showing phonetics');
+    return phoneticsObserver;
+  }
+  
   // 处理页面现有内容
   processPage();
   
   // 监听 DOM 变化
-  const observer = new MutationObserver(handleMutations);
-  observer.observe(document.body, {
+  phoneticsObserver = new MutationObserver(handleMutations);
+  phoneticsObserver.observe(document.body, {
     childList: true,
     subtree: true
   });
   
-  return observer;
+  console.log('[Phonetics] Initialized and observing DOM changes');
+  return phoneticsObserver;
 }
 
 /**
@@ -188,15 +203,16 @@ function escapeHtml(text) {
 }
 
 /**
- * 清除所有音标标注
+ * 隐藏音标显示（不删除DOM）
  */
 export function clearPhonetics() {
-  const wrappers = document.querySelectorAll(`.${PLUGIN_PREFIX}text-wrapper`);
-  wrappers.forEach(wrapper => {
-    const text = wrapper.textContent;
-    const textNode = document.createTextNode(text);
-    wrapper.parentNode?.replaceChild(textNode, wrapper);
-  });
+  console.log('[Phonetics] Hiding phonetics with CSS...');
+  
+  // 添加CSS类来隐藏所有音标
+  document.body.classList.add('elh-hide-phonetics');
+  
+  // 保持observer运行，以便新内容也会被处理（只是不可见）
+  console.log('[Phonetics] Phonetics hidden but observer still running');
 }
 
 export { phoneticsCache };

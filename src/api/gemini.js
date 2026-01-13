@@ -127,25 +127,40 @@ export async function generateContentStream(apiKey, prompt, options = {}, onChun
  * @param {function} onStreamChunk Optional callback for streaming chunks
  * @returns {Promise<object>} Analysis result
  */
-export async function analyzeWordInContext(apiKey, word, sentence, onStreamChunk = null) {
+export async function analyzeWordInContext(apiKey, word, paragraph, onStreamChunk = null) {
   let responseText = '';
   try {
-    const prompt = `Please analyze the English word "${word}" in the following context:
+    const prompt = `你是一位专业的英语教师。请分析单词 "${word}" 在以下段落中的用法：
 
-"${sentence}"
+段落：
+"${paragraph}"
 
-Provide a comprehensive analysis in the following JSON format:
+请按以下JSON格式提供详细分析（用中文解释）：
 {
   "word": "${word}",
-  "contextMeaning": "The specific meaning in this context",
-  "partOfSpeech": "The part of speech in this usage",
-  "explanation": "Detailed explanation in Chinese (简体中文)",
-  "usageNotes": "Any special usage notes or nuances",
-  "relatedExpressions": ["related phrase 1", "related phrase 2"],
-  "exampleSentences": ["Example 1", "Example 2"]
+  "detailedMeaning": {
+    "chinese": "该词在此语境中的中文含义",
+    "english": "The English definition in this context",
+    "partOfSpeech": "词性（如：动词、名词等）"
+  },
+  "pronunciation": {
+    "ipa": "IPA音标",
+    "tips": "发音技巧和注意事项，包括重音位置、特殊发音等"
+  },
+  "contextualAnalysis": {
+    "usage": "在这个段落中的具体用法和作用",
+    "nuance": "语义精妙之处或特殊含义",
+    "synonymsInContext": ["在此语境下的近义词1", "近义词2"]
+  },
+  "mnemonicTechniques": {
+    "visualization": "形象记忆法（联想、画面等）",
+    "association": "词根词缀或关联记忆",
+    "story": "记忆小故事或口诀"
+  },
+  "examples": ["例句1", "例句2"]
 }
 
-Respond with only valid JSON, no markdown formatting.`;
+只返回有效的JSON，不要包含markdown格式标记。`;
 
     // Use gemini-flash-latest which is stable and present in user's list
     responseText = await generateContentStream(apiKey, prompt, {

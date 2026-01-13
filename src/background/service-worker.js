@@ -4,6 +4,7 @@
  */
 
 import { analyzeWordInContext, textToSpeech, validateApiKey } from '../api/gemini.js';
+import { md5 } from '../utils/md5.js';
 
 // 监听来自 Content Script 的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -116,29 +117,95 @@ async function handleTTS({ text, options = {} }) {
 /**
  * 处理词典查询请求（通过后台避免 CORS）
  */
-async function handleLookupWord({ word, api = 'iciba' }) {
+async function handleLookupWord({ word, api = 'freedict' }) {
+  console.log('[Service Worker] handleLookupWord called:', { word, api });
+  
   try {
-    let url;
-    
-    if (api === 'iciba') {
-      // iciba API for English-Chinese
-      url = `https://dict-co.iciba.com/api/dictionary.php?w=${encodeURIComponent(word)}&type=json&key=YOURAPIKEY`;
-    } else {
-      // Free Dictionary API  (fallback)
-      url = `https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`;
-    }
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        return { success: false, notFound: true };
+    if (api === 'baidu') {
+      console.log('[Service Worker] Using Baidu API');
+      
+      // 百度翻译API
+      const settings = await chrome.storage.local.get(['baiduAppId', 'baiduSecret']);
+      console.log('[Service Worker] Baidu settings loaded:', { 
+        hasAppId: !!settings.baiduAppId, 
+        hasSecret: !!settings.baiduSecret 
+      });
+      
+      if (!settings.baiduAppId || !settings.baiduSecret) {
+        console.error('[Service Worker] Baidu credentials missing');
+        return { 
+          success: false, 
+          error: '请先在设置页面配置百度翻译API密钥' 
+        };
       }
-      throw new Error(`Dictionary API error: ${response.status}`);
+      
+      // 使用百度API（md5已在顶部导入）
+      const appid = settings.baiduAppId;
+      const key = settings.baiduSecret;
+      const salt = Date.now().toString();
+      
+      // 生成签名：MD5(appid+q+salt+密钥)
+      const signString = appid + word + salt + key;
+      const sign = md5(signString);
+      
+      console.log('[Service Worker] ========== 百度API签名调试 ==========');
+      console.log('[Service Worker] APP ID:', appid);
+      console.log('[Service Worker] 查询词:', word);
+      console.log('[Service Worker] Salt:', salt);
+      console.log('[Service Worker] 密钥:', key.substring(0, 4) + '****' + key.substring(key.length - 4));
+      console.log('[Service Worker] 签名字符串:', signString);
+      console.log('[Service Worker] MD5签名:', sign);
+      console.log('[Service Worker] ==========================================');
+      
+      const params = new URLSearchParams({
+        q: word,
+        from: 'en',
+        to: 'zh',
+        appid: appid,
+        salt: salt,
+        sign: sign
+      });
+      
+      const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?${params.toString()}`;
+      console.log('[Service Worker] Fetching:', url);
+      
+      const response = await fetch(url);
+      console.log('[Service Worker] Fetch response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Baidu API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('[Service Worker] Baidu API response:', data);
+      
+      if (data.error_code) {
+        console.error('[Service Worker] Baidu API error:', data);
+        return {
+          success: false,
+          error: `百度API错误 ${data.error_code}: ${data.error_msg || '未知错误'}`
+        };
+      }
+      
+      return { success: true, data };
+    } else {
+      console.log('[Service Worker] Using Free Dictionary API');
+      
+      // 使用 Free Dictionary API (完全免费，无需 API key)
+      const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return { success: false, notFound: true };
+        }
+        throw new Error(`Dictionary API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return { success: true, data };
     }
-    
-    const data = await response.json();
-    return { success: true, data };
   } catch (error) {
     console.error('[Dictionary] Lookup error:', error);
     return { success: false, error: error.message };

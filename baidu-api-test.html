@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>百度翻译API签名测试工具</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background: #4285f4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #3367d6;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 4px;
+      display: none;
+    }
+    .result.show {
+      display: block;
+    }
+    .error {
+      color: #d32f2f;
+    }
+    .success {
+      color: #388e3c;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .tip {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+</head>
+<body>
+  <h1>🔍 百度翻译API签名测试工具</h1>
+  
+  <div class="tip">
+    <strong>提示：</strong>此工具仅用于本地测试，不会上传您的密钥到任何服务器。
+  </div>
+
+  <div class="form-group">
+    <label for="appid">APP ID:</label>
+    <input type="text" id="appid" placeholder="输入你的百度APP ID">
+  </div>
+
+  <div class="form-group">
+    <label for="secret">密钥:</label>
+    <input type="password" id="secret" placeholder="输入你的百度密钥">
+  </div>
+
+  <div class="form-group">
+    <label for="query">查询词:</label>
+    <input type="text" id="query" value="hello" placeholder="输入要翻译的单词">
+  </div>
+
+  <button onclick="testSign()">生成签名并测试</button>
+  <button onclick="loadFromExtension()" style="background: #666; margin-left: 10px;">从扩展加载</button>
+
+  <div id="result" class="result">
+    <h3>签名信息</h3>
+    <div id="signInfo"></div>
+    
+    <h3>测试结果</h3>
+    <div id="testResult"></div>
+  </div>
+
+  <script>
+    // 从Chrome扩展加载配置
+    async function loadFromExtension() {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        const data = await chrome.storage.local.get(['baiduAppId', 'baiduSecret']);
+        if (data.baiduAppId) {
+          document.getElementById('appid').value = data.baiduAppId;
+        }
+        if (data.baiduSecret) {
+          document.getElementById('secret').value = data.baiduSecret;
+        }
+        if (data.baiduAppId || data.baiduSecret) {
+          alert('已从扩展加载配置');
+        } else {
+          alert('扩展中未找到配置');
+        }
+      } else {
+        alert('请在Chrome扩展环境中使用此功能');
+      }
+    }
+
+    async function testSign() {
+      const appid = document.getElementById('appid').value.trim();
+      const secret = document.getElementById('secret').value.trim();
+      const query = document.getElementById('query').value.trim();
+
+      if (!appid || !secret || !query) {
+        alert('请填写所有字段');
+        return;
+      }
+
+      const salt = Date.now().toString();
+      
+      // 生成签名：MD5(appid+q+salt+密钥)
+      const signString = appid + query + salt + secret;
+      const sign = md5(signString);
+
+      // 构造URL
+      const params = new URLSearchParams({
+        q: query,
+        from: 'en',
+        to: 'zh',
+        appid: appid,
+        salt: salt,
+        sign: sign
+      });
+      
+      const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?${params.toString()}`;
+
+      // 显示签名信息
+      const signInfo = `
+        <p><strong>APP ID:</strong> ${appid}</p>
+        <p><strong>查询词:</strong> ${query}</p>
+        <p><strong>Salt:</strong> ${salt}</p>
+        <p><strong>密钥:</strong> ${secret.substring(0, 4)}****${secret.substring(secret.length - 4)}</p>
+        <p><strong>签名字符串:</strong> <code>${signString}</code></p>
+        <p><strong>MD5签名:</strong> <code>${sign}</code></p>
+        <p><strong>请求URL:</strong></p>
+        <pre>${url}</pre>
+      `;
+      
+      document.getElementById('signInfo').innerHTML = signInfo;
+
+      // 测试API
+      document.getElementById('testResult').innerHTML = '<p>正在测试...</p>';
+      document.getElementById('result').classList.add('show');
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error_code) {
+          document.getElementById('testResult').innerHTML = `
+            <p class="error"><strong>❌ 失败</strong></p>
+            <p>错误码: ${data.error_code}</p>
+            <p>错误信息: ${data.error_msg || '未知错误'}</p>
+            <h4>错误码说明：</h4>
+            <ul>
+              <li><strong>52001</strong> - 请求超时，请重试</li>
+              <li><strong>52003</strong> - 未授权用户（APP ID或密钥错误）⚠️</li>
+              <li><strong>54000</strong> - 必填参数为空</li>
+              <li><strong>54001</strong> - 签名错误（请检查密钥和签名算法）</li>
+              <li><strong>54003</strong> - 访问频率受限</li>
+              <li><strong>54004</strong> - 账户余额不足</li>
+            </ul>
+            <p><strong>解决方法：</strong></p>
+            <ul>
+              <li>检查APP ID是否正确（复制时没有多余空格）</li>
+              <li>检查密钥是否正确（注意大小写）</li>
+              <li>确认已在百度平台开通"通用翻译API"服务</li>
+              <li>访问 <a href="https://fanyi-api.baidu.com/manage/developer" target="_blank">开发者信息页面</a> 核对</li>
+            </ul>
+          `;
+        } else if (data.trans_result) {
+          const translation = data.trans_result.map(t => t.dst).join('; ');
+          document.getElementById('testResult').innerHTML = `
+            <p class="success"><strong>✅ 成功！</strong></p>
+            <p><strong>原文:</strong> ${data.trans_result[0].src}</p>
+            <p><strong>译文:</strong> ${translation}</p>
+            <p>您的API配置正确！</p>
+          `;
+        } else {
+          document.getElementById('testResult').innerHTML = `
+            <p class="error">未知响应格式</p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        document.getElementById('testResult').innerHTML = `
+          <p class="error"><strong>❌ 请求失败</strong></p>
+          <p>${error.message}</p>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

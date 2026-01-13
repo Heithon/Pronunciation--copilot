@@ -83,6 +83,57 @@
         </div>
       </section>
       
+      <!-- 词典API设置 -->
+      <section class="settings-section">
+        <h2 class="section-title">
+          <span class="section-icon">📚</span>
+          词典API设置
+        </h2>
+        <div class="settings-card">
+          <div class="setting-item">
+            <label for="dictionaryAPI" class="setting-label">
+              <span class="label-text">词典API选择</span>
+              <span class="label-hint">选择词典查询服务</span>
+            </label>
+            <select id="dictionaryAPI" class="select-field">
+              <option value="freedict">Free Dictionary (英文释义，免费)</option>
+              <option value="baidu">百度翻译 (仅中文翻译，需配置)</option>
+              <option value="hybrid">混合模式 (英文+中文，推荐⭐)</option>
+            </select>
+          </div>
+          
+          <!-- 百度API配置 -->
+          <div id="baiduSettings" style="display:none; margin-top: 20px;">
+            <div class="setting-item">
+              <label for="baiduAppId" class="setting-label">
+                <span class="label-text">百度APP ID</span>
+              </label>
+              <input type="text" id="baiduAppId" class="input-field" placeholder="请输入APP ID">
+            </div>
+            
+            <div class="setting-item">
+              <label for="baiduSecret" class="setting-label">
+                <span class="label-text">百度密钥</span>
+              </label>
+              <div class="input-group">
+                <input type="password" id="baiduSecret" class="input-field" placeholder="请输入密钥">
+                <button type="button" id="toggleBaiduSecret" class="btn-icon" title="显示/隐藏">👁️</button>
+              </div>
+            </div>
+            
+            <div class="setting-actions">
+              <button id="validateBaiduApi" class="btn btn-outline">验证 API</button>
+            </div>
+            <div class="api-status" id="baiduApiStatus"></div>
+            
+            <div class="setting-help">
+              <p>👉 完成实名认证后每月100万字符免费</p>
+              <p><a href="https://fanyi-api.baidu.com" target="_blank">点击申请百度翻译API密钥 →</a></p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <!-- 显示设置 -->
       <section class="settings-section">
         <h2 class="section-title">

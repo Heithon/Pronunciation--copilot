@@ -18,7 +18,7 @@ export function initDictionary() {
   // 创建弹窗元素
   createPopupElement();
   
-  // 监听单词点击
+  // 监听单词点击（Alt + 单击查词）
   document.addEventListener('click', handleWordClick);
   
   // 点击其他区域关闭弹窗
@@ -74,12 +74,17 @@ function createPopupElement() {
 }
 
 /**
- * 处理单词点击
+ * 处理单词点击（仅 Alt + 单击触发）
  * @param {Event} e 事件
  */
 async function handleWordClick(e) {
   const wordElement = e.target.closest(`.${PLUGIN_PREFIX}word`);
   if (!wordElement) return;
+  
+  // 只有按住 Alt 键时才触发查词，否则保持原有行为（如链接跳转）
+  if (!e.altKey) {
+    return;
+  }
   
   e.preventDefault();
   e.stopPropagation();
@@ -93,7 +98,7 @@ async function handleWordClick(e) {
   currentWord = {
     word,
     element: wordElement,
-    sentence: getSentenceContext(wordElement)
+    sentence: getParagraphContext(wordElement)  // 使用段落上下文
   };
   
   showPopup(rect, word);
@@ -317,86 +322,167 @@ function renderAIResult(data) {
   const aiContent = popupElement.querySelector(`.${PLUGIN_PREFIX}ai-content`);
   
   if (data.parseError) {
-    // 使用 textContent 防止 XSS 并保留格式
-    const p = document.createElement('p');
-    p.className = `${PLUGIN_PREFIX}ai-text`;
-    p.style.whiteSpace = 'pre-wrap'; // 保留换行符
-    p.textContent = data.explanation;
-    aiContent.appendChild(p);
+    aiContent.innerHTML = `<div class="${PLUGIN_PREFIX}ai-error">解析失败：${data.rawOutput || data.explanation}</div>`;
     return;
   }
   
-  let html = `
-    <div class="${PLUGIN_PREFIX}ai-section">
-      <div class="${PLUGIN_PREFIX}ai-label">语境含义</div>
-      <div class="${PLUGIN_PREFIX}ai-value">${data.contextMeaning || ''}</div>
-    </div>
-    <div class="${PLUGIN_PREFIX}ai-section">
-      <div class="${PLUGIN_PREFIX}ai-label">词性</div>
-      <div class="${PLUGIN_PREFIX}ai-value">${data.partOfSpeech || ''}</div>
-    </div>
-    <div class="${PLUGIN_PREFIX}ai-section">
-      <div class="${PLUGIN_PREFIX}ai-label">详细解释</div>
-      <div class="${PLUGIN_PREFIX}ai-value">${data.explanation || ''}</div>
-    </div>
-  `;
+  let html = '';
   
-  if (data.usageNotes) {
+  // 1. 详细释义
+  if (data.detailedMeaning) {
     html += `
       <div class="${PLUGIN_PREFIX}ai-section">
-        <div class="${PLUGIN_PREFIX}ai-label">用法提示</div>
-        <div class="${PLUGIN_PREFIX}ai-value">${data.usageNotes}</div>
+        <div class="${PLUGIN_PREFIX}ai-label">📖 详细释义</div>
+        <div class="${PLUGIN_PREFIX}ai-value">
+          <div><strong>${data.detailedMeaning.chinese || ''}</strong></div>
+          ${data.detailedMeaning.english ? `<div class="sub-text">${data.detailedMeaning.english}</div>` : ''}
+          ${data.detailedMeaning.partOfSpeech ? `<div class="pos">${data.detailedMeaning.partOfSpeech}</div>` : ''}
+        </div>
       </div>
     `;
   }
   
-  if (data.relatedExpressions && data.relatedExpressions.length > 0) {
+  // 2. 发音技巧
+  if (data.pronunciation) {
     html += `
       <div class="${PLUGIN_PREFIX}ai-section">
-        <div class="${PLUGIN_PREFIX}ai-label">相关表达</div>
-        <div class="${PLUGIN_PREFIX}ai-value">${data.relatedExpressions.join(', ')}</div>
+        <div class="${PLUGIN_PREFIX}ai-label">🗣️ 发音技巧</div>
+        <div class="${PLUGIN_PREFIX}ai-value">
+          ${data.pronunciation.ipa ? `<div class="ipa">${data.pronunciation.ipa}</div>` : ''}
+          ${data.pronunciation.tips ? `<div>${data.pronunciation.tips}</div>` : ''}
+        </div>
       </div>
     `;
   }
   
-  aiContent.innerHTML = html;
+  // 3. 语境解释
+  if (data.contextualAnalysis) {
+    html += `
+      <div class="${PLUGIN_PREFIX}ai-section">
+        <div class="${PLUGIN_PREFIX}ai-label">📝 语境解释</div>
+        <div class="${PLUGIN_PREFIX}ai-value">
+          ${data.contextualAnalysis.usage ? `<div><strong>用法：</strong>${data.contextualAnalysis.usage}</div>` : ''}
+          ${data.contextualAnalysis.nuance ? `<div><strong>精妙之处：</strong>${data.contextualAnalysis.nuance}</div>` : ''}
+          ${data.contextualAnalysis.synonymsInContext && data.contextualAnalysis.synonymsInContext.length > 0 
+            ? `<div><strong>近义词：</strong>${data.contextualAnalysis.synonymsInContext.join(', ')}</div>` 
+            : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // 4. 助记技巧
+  if (data.mnemonicTechniques) {
+    html += `
+      <div class="${PLUGIN_PREFIX}ai-section">
+        <div class="${PLUGIN_PREFIX}ai-label">💡 助记技巧</div>
+        <div class="${PLUGIN_PREFIX}ai-value">
+          ${data.mnemonicTechniques.visualization ? `<div><strong>形象记忆：</strong>${data.mnemonicTechniques.visualization}</div>` : ''}
+          ${data.mnemonicTechniques.association ? `<div><strong>关联记忆：</strong>${data.mnemonicTechniques.association}</div>` : ''}
+          ${data.mnemonicTechniques.story ? `<div><strong>记忆口诀：</strong>${data.mnemonicTechniques.story}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // 5. 例句
+  if (data.examples && data.examples.length > 0) {
+    html += `
+      <div class="${PLUGIN_PREFIX}ai-section">
+        <div class="${PLUGIN_PREFIX}ai-label">💬 例句</div>
+        <div class="${PLUGIN_PREFIX}ai-value">
+          ${data.examples.map(ex => `<div class="example">• ${ex}</div>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // 旧格式兼容（如果没有新格式数据）
+  if (!html && data.explanation) {
+    html = `
+      <div class="${PLUGIN_PREFIX}ai-section">
+        <div class="${PLUGIN_PREFIX}ai-label">解释</div>
+        <div class="${PLUGIN_PREFIX}ai-value">${data.explanation}</div>
+      </div>
+    `;
+  }
+  
+  aiContent.innerHTML = html || '<div>暂无数据</div>';
 }
 
 /**
- * 获取句子上下文
+ * 获取段落上下文
  * @param {HTMLElement} wordElement 单词元素
- * @returns {string} 句子
+ * @returns {string} 段落
  */
-function getSentenceContext(wordElement) {
-  // 尝试获取包含该单词的段落或句子
-  let parent = wordElement.parentElement;
-  let text = '';
+function getParagraphContext(wordElement) {
+  // 向上查找包含该单词的段落
+  let parent = wordElement;
   
+  // 首先查找最近的段落元素
   while (parent && parent !== document.body) {
-    if (['P', 'DIV', 'SPAN', 'LI', 'TD', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(parent.tagName)) {
-      text = parent.textContent;
-      break;
+    const tagName = parent.tagName.toLowerCase();
+    
+    // 段落级别元素
+    if (tagName === 'p' || tagName === 'div' || tagName === 'section' || 
+        tagName === 'article' || tagName === 'li' || tagName === 'blockquote' ||
+        tagName === 'td' || tagName === 'dd') {
+      const text = parent.textContent.trim();
+      // 如果段落文本长度合理（10-500字符），使用它
+      if (text.length >= 10 && text.length <= 500) {
+        return text;
+      }
+      // 如果太长，尝试获取前后若干字符
+      if (text.length > 500) {
+        return extractLocalContext(wordElement, parent, 250);
+      }
     }
+    
     parent = parent.parentElement;
   }
   
-  if (!text) {
-    text = wordElement.closest('p, div, span')?.textContent || wordElement.textContent;
+  // 如果没找到合适的段落，获取周围文本
+  return extractLocalContext(wordElement, document.body, 150);
+}
+
+/**
+ * 提取单词周围的局部上下文
+ * @param {HTMLElement} wordElement 单词元素
+ * @param {HTMLElement} container 容器元素
+ * @param {number} maxLength 最大长度
+ * @returns {string} 上下文
+ */
+function extractLocalContext(wordElement, container, maxLength = 200) {
+  const fullText = container.textContent;
+  const wordText = wordElement.textContent;
+  const wordIndex = fullText.indexOf(wordText);
+  
+  if (wordIndex === -1) {
+    return fullText.substring(0, maxLength);
   }
   
-  // 限制长度
-  if (text.length > 500) {
-    // 尝试找到包含目标单词的句子
-    const word = wordElement.dataset.word;
-    const sentences = text.split(/[.!?]+/);
-    const targetSentence = sentences.find(s => s.toLowerCase().includes(word.toLowerCase()));
-    if (targetSentence) {
-      return targetSentence.trim();
+  // 获取单词前后的文本
+  const start = Math.max(0, wordIndex - maxLength / 2);
+  const end = Math.min(fullText.length, wordIndex + wordText.length + maxLength / 2);
+  
+  let context = fullText.substring(start, end).trim();
+  
+  // 尝试在句子边界截断
+  if (start > 0) {
+    const firstPeriod = context.indexOf('. ');
+    if (firstPeriod > 0 && firstPeriod < 50) {
+      context = context.substring(firstPeriod + 2);
     }
-    return text.substring(0, 500) + '...';
   }
   
-  return text.trim();
+  if (end < fullText.length) {
+    const lastPeriod = context.lastIndexOf('. ');
+    if (lastPeriod > context.length - 50 && lastPeriod > 0) {
+      context = context.substring(0, lastPeriod + 1);
+    }
+  }
+  
+  return context || wordText;
 }
 
 export { hidePopup };

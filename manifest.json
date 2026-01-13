@@ -6,6 +6,7 @@
   "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",
+    "https://fanyi-api.baidu.com/*",
     "https://generativelanguage.googleapis.com/*"
   ],
   "action": {

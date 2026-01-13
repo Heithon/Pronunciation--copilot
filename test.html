@@ -1,74 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Learning Helper - Test Page</title>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>查词功能测试 - English Learning Helper</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        h1 {
-            color: #667eea;
-        }
-        p {
-            margin: 20px 0;
-        }
-        .instructions {
-            background: #f0f7ff;
-            padding: 15px;
-            border-left: 4px solid #667eea;
-            margin: 20px 0;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        line-height: 1.8;
+        background: #f5f5f5;
+      }
+
+      .container {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        border-bottom: 3px solid #4caf50;
+        padding-bottom: 10px;
+      }
+
+      .test-section {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f9f9f9;
+        border-left: 4px solid #4caf50;
+        border-radius: 4px;
+      }
+
+      .test-section h2 {
+        margin-top: 0;
+        color: #4caf50;
+        font-size: 1.2em;
+      }
+
+      .feature-box {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .feature-box h3 {
+        margin-top: 0;
+        color: #2e7d32;
+        font-size: 1em;
+      }
+
+      .feature-box ul {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+
+      .feature-box li {
+        margin: 8px 0;
+      }
+
+      a {
+        color: #1976d2;
+        text-decoration: none;
+        border-bottom: 1px solid #1976d2;
+      }
+
+      a:hover {
+        background: #e3f2fd;
+      }
+
+      code {
+        background: #ffe082;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+      }
+
+      .tip {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 12px;
+        border-radius: 6px;
+        margin: 20px 0;
+      }
+
+      .tip::before {
+        content: "💡 ";
+        font-size: 1.2em;
+      }
+
+      .example {
+        margin: 15px 0;
+        padding: 15px;
+        background: white;
+        border: 1px dashed #ddd;
+        border-radius: 4px;
+      }
     </style>
-</head>
-<body>
-    <h1>English Learning Helper Extension Test Page</h1>
-    
-    <div class="instructions">
-        <h3>Instructions:</h3>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📚 English Learning Helper - 查词功能测试</h1>
+
+      <div class="tip">
+              直接单击链接内的单词 = 正常跳转（不查词）
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h2>🔗 测试 1：链接内的单词</h2>
+        <div class="example">
+          <p>这里有一些链接，测试是否可以正常跳转：</p>
+          <ul>
+            <li>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript">
+                Learn JavaScript programming language
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/topics/chrome-extension">
+                Explore Chrome Extension development
+              </a>
+            </li>
+            <li>
+              <a href="https://stackoverflow.com/questions/tagged/typescript">
+                TypeScript questions and answers
+              </a>
+            </li>
+          </ul>
+          <p><strong>测试步骤：</strong></p>
+          <ol>
+            <li>直接点击链接中的单词（如 "JavaScript"）→ 应该跳转链接 ✅</li>
+            <li>
+              按住
+              <code>Alt</code>
+              + 点击单词 → 应该显示查词弹窗 ✅
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h2>📝 测试 2：普通文本</h2>
+        <div class="example">
+          <p>
+            The
+            <strong>revolution</strong>
+            of artificial intelligence has dramatically transformed the
+            landscape of modern technology. Machine learning algorithms enable
+            computers to recognize patterns and make decisions with
+            unprecedented accuracy. Deep neural networks process enormous
+            amounts of data, discovering intricate relationships that would be
+            impossible for humans to detect manually.
+          </p>
+          <p>
+            Companies worldwide are implementing AI solutions to optimize their
+            operations. From automated customer service chatbots to
+            sophisticated recommendation systems, AI is becoming increasingly
+            ubiquitous in our daily lives. However, this technological
+            advancement also raises important ethical questions about privacy,
+            accountability, and the future of employment.
+          </p>
+          <p><strong>测试步骤：</strong></p>
         <ol>
-            <li>Open the browser console (F12 → Console tab)</li>
-            <li>Look for messages starting with <code>[English Learning Helper]</code></li>
-            <li>Check if phonetics appear below words</li>
-            <li>Try clicking on any word to see the dictionary popup</li>
-            <li>Select some text to see the TTS toolbar</li>
+          <li><code>Alt</code> + 单击任意单词（如 "revolution", "algorithms", "unprecedented"）→ 显示查词弹窗 ✅</li>
+          <li>双击任意单词 → 选中文本（可使用划选朗读功能）✅</li>
         </ol>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h2>🌐 测试 3：混合场景</h2>
+        <div class="example">
+          <p>
+            The concept of
+            <a href="https://en.wikipedia.org/wiki/Sustainability">
+              sustainability
+            </a>
+            has become increasingly important in contemporary discourse.
+            Organizations must balance economic growth with environmental
+            responsibility. Many innovative companies are developing
+            <a href="https://www.example.com/renewable">renewable energy</a>
+            technologies that can potentially mitigate climate change while
+            maintaining profitability.
+          </p>
+          <p><strong>测试矩阵：</strong></p>
+          <table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
+            <tr style="background: #4CAF50; color: white;">
+              <th>操作</th>
+              <th>链接内单词</th>
+              <th>普通单词</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>单击</strong></td>
+              <td>跳转链接 ✅</td>
+              <td>无反应 ✅</td>
+            </tr>
+            <tr>
+              <td><strong>Alt + 单击</strong></td>
+              <td>查词 ✅</td>
+              <td>查词 ✅</td>
+            </tr>
+            <tr>
+              <td><strong>双击</strong></td>
+              <td>选中文本 ✅</td>
+              <td>选中文本 ✅</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h2>🎨 测试 4：特殊文本</h2>
+        <div class="example">
+          <p><strong>专业术语：</strong></p>
+          <ul>
+            <li>Photosynthesis - the biological process used by plants</li>
+            <li>Cryptocurrency - digital or virtual currency</li>
+            <li>Quantum mechanics - fundamental theory in physics</li>
+            <li>Biodiversity - variety of life in a particular habitat</li>
+          </ul>
+
+          <p><strong>常用词汇：</strong></p>
+          <ul>
+            <li>beautiful, wonderful, amazing, fantastic</li>
+            <li>important, necessary, essential, critical</li>
+            <li>understand, comprehend, acknowledge, recognize</li>
+          </ul>
+
+          <p><strong>长句测试（AI 语境分析）：</strong></p>
+          <blockquote
+            style="
+              border-left: 4px solid #4caf50;
+              padding-left: 15px;
+              color: #555;
+            "
+          >
+            "The implementation of sophisticated algorithms in modern software
+            engineering requires comprehensive understanding of data structures,
+            computational complexity, and optimization techniques. Developers
+            must continuously adapt to emerging technologies and methodologies
+            to maintain competitive advantage in the rapidly evolving tech
+            industry."
+          </blockquote>
+          <p style="font-size: 0.9em; color: #666">
+            💡 双击单词后，点击"AI 语境分析"按钮，测试 Gemini AI 分析功能
+          </p>
+        </div>
+      </div>
+
+      <div class="test-section">
+      <h2>✅ 验收标准</h2>
+      <div class="feature-box">
+        <ul>
+          <li>✅ 单击链接可以正常跳转，不触发查词</li>
+          <li>✅ Alt + 单击任意单词可以查词（包括链接内）</li>
+          <li>✅ 双击单词可以选中文本，不触发查词</li>
+          <li>✅ 查词弹窗显示正确的音标和释义</li>
+          <li>✅ AI 分析功能正常工作</li>
+          <li>✅ 关闭弹窗后可以重新查词</li>
+          <li>✅ 选中文本后可以使用划选朗读功能</li>
+        </ul>
+      </div>
     </div>
 
-    <h2>Sample English Text</h2>
-    
-    <p>
-        The quick brown fox jumps over the lazy dog. This pangram contains every letter 
-        of the alphabet and is commonly used for testing purposes.
-    </p>
+      <div class="test-section">
+        <h2>🚀 快捷键参考</h2>
+        <div class="example">
+          <ul>
+            <li><code>Alt + 单击单词</code> - 查词（唯一触发方式）</li>
+            <li><code>双击单词</code> - 选中文本</li>
+            <li><code>选中文本</code> - 显示朗读工具栏</li>
+            <li><code>Esc</code> - 关闭查词弹窗</li>
+          </ul>
+        </div>
+      </div>
 
-    <p>
-        Learning languages requires dedication and consistent practice. Understanding 
-        pronunciation through phonetic transcriptions helps improve speaking skills.
-    </p>
-
-    <p>
-        Technology has revolutionized education by making knowledge accessible to everyone.
-        Modern applications leverage artificial intelligence to provide personalized 
-        learning experiences.
-    </p>
-
-    <h2>Technical Vocabulary</h2>
-    
-    <p>
-        The algorithm processes data efficiently using advanced computational techniques.
-        Implementation requires comprehensive understanding of software architecture and
-        design patterns.
-    </p>
-
-    <p>
-        Developers utilize various frameworks and libraries to accelerate development.
-        Debugging skills are essential for identifying and resolving issues quickly.
-    </p>
-</body>
+      <div
+        style="
+          margin-top: 40px;
+          padding: 20px;
+          background: #e8f5e9;
+          border-radius: 8px;
+          text-align: center;
+        "
+      >
+        <p style="margin: 0; color: #2e7d32; font-size: 1.1em">
+          🎉 感谢使用 English Learning Helper！
+        </p>
+        <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9em">
+          问题反馈或功能建议？
+          <a href="https://github.com">GitHub Issues</a>
+        </p>
+      </div>
+    </div>
+  </body>
 </html>

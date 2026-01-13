@@ -8,6 +8,9 @@ console.log('[English Learning Helper] Content script loaded!');
 // 模块状态
 let isInitialized = false;
 let settings = null;
+let phoneticsModule = null;
+let dictionaryModule = null;
+let selectionModule = null;
 
 /**
  * 初始化插件
@@ -29,22 +32,24 @@ async function init() {
     console.log('[English Learning Helper] Loading modules dynamically...');
     
     // 动态导入模块（解决 Chrome 扩展中 ES 模块加载问题）
-    const phoneticsModule = await import(chrome.runtime.getURL('src/content/modules/phonetics.js'));
-    const dictionaryModule = await import(chrome.runtime.getURL('src/content/modules/dictionary.js'));
-    const selectionModule = await import(chrome.runtime.getURL('src/content/modules/selection.js'));
+    phoneticsModule = await import(chrome.runtime.getURL('src/content/modules/phonetics.js'));
+    dictionaryModule = await import(chrome.runtime.getURL('src/content/modules/dictionary.js'));
+    selectionModule = await import(chrome.runtime.getURL('src/content/modules/selection.js'));
     
     console.log('[English Learning Helper] Modules imported successfully!');
     
     console.log('[English Learning Helper] Initializing modules...');
     
-    // 初始化音标模块
-    if (settings.enablePhonetics) {
-      console.log('[English Learning Helper] Initializing phonetics module...');
-      phoneticsModule.initPhonetics();
-      console.log('[English Learning Helper] Phonetics module initialized');
-    } else {
-      console.log('[English Learning Helper] Phonetics module disabled in settings');
+    // 初始化音标模块（始终初始化，但根据设置决定是否显示）
+    console.log('[English Learning Helper] Initializing phonetics module...');
+    phoneticsModule.initPhonetics();
+    
+    // 根据设置决定是否隐藏音标
+    if (!settings.enablePhonetics) {
+      console.log('[English Learning Helper] Phonetics disabled, hiding with CSS');
+      document.body.classList.add('elh-hide-phonetics');
     }
+    console.log('[English Learning Helper] Phonetics module initialized');
     
     // 初始化词典模块
     if (settings.enableDictionary) {
@@ -100,11 +105,39 @@ function getDefaultSettings() {
   };
 }
 
+/**
+ * 处理音标显示切换
+ */
+async function handlePhoneticsToggle(enabled) {
+  if (!phoneticsModule) {
+    console.warn('[English Learning Helper] Phonetics module not loaded');
+    return;
+  }
+  
+  if (enabled) {
+    console.log('[English Learning Helper] Enabling phonetics...');
+    phoneticsModule.initPhonetics();
+  } else {
+    console.log('[English Learning Helper] Disabling phonetics...');
+    phoneticsModule.clearPhonetics();
+  }
+}
+
 // 监听设置变化
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local' && changes.settings) {
-    console.log('[English Learning Helper] Settings changed, reloading may be required');
-    // 可以在这里实现动态更新
+    console.log('[English Learning Helper] Settings changed:', changes.settings);
+    
+    const oldSettings = changes.settings.oldValue || {};
+    const newSettings = changes.settings.newValue || {};
+    
+    // 动态切换音标显示
+    if (oldSettings.enablePhonetics !== newSettings.enablePhonetics) {
+      handlePhoneticsToggle(newSettings.enablePhonetics);
+    }
+    
+    // 更新当前设置引用
+    settings = newSettings;
   }
 });
 
