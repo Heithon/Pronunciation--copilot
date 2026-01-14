@@ -49,3 +49,5 @@ coverage/
 
 # Optional: brain/artifacts directory (if you don't want to track)
 # .gemini/
+
+release/
