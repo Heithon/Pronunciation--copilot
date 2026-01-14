@@ -51,6 +51,9 @@ async function handleMessage(message, sender) {
     
     case 'SAVE_SETTINGS':
       return handleSaveSettings(message);
+
+    case 'SAVE_API_KEY':
+      return handleSaveApiKey(message);
     
     default:
       throw new Error(`Unknown message type: ${message.type}`);
@@ -245,6 +248,24 @@ async function handleSaveSettings({ settings, apiKey }) {
   }
   await chrome.storage.local.set(updates);
   return { success: true };
+}
+
+/**
+ * 保存 API Key (带验证)
+ */
+async function handleSaveApiKey({ apiKey }) {
+  try {
+    const isValid = await validateApiKey(apiKey);
+    if (isValid) {
+      await chrome.storage.local.set({ gemini_api_key: apiKey });
+      return { success: true };
+    } else {
+      return { success: false, error: 'API Key 验证失败，请检查是否正确' };
+    }
+  } catch (error) {
+    console.error('API Key validation error:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 /**

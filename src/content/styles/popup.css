@@ -1,115 +1,154 @@
 /**
- * 词典弹窗样式
+ * 词典弹窗样式 - Premium Design
  */
+
+/* 变量定义 */
+:root {
+  --elh-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
+  --elh-font-serif: "Georgia", "Cambria", "Times New Roman", Times, serif;
+  
+  --elh-bg-primary: #ffffff;
+  --elh-bg-secondary: #f9fafb;
+  --elh-bg-tertiary: #f3f4f6;
+  
+  --elh-text-primary: #111827;
+  --elh-text-secondary: #4b5563;
+  --elh-text-tertiary: #6b7280;
+  
+  --elh-accent-color: #2563eb;       /* 专业蓝 */
+  --elh-accent-hover: #1d4ed8;
+  --elh-accent-subtle: #eff6ff;
+  
+  --elh-border-color: #e5e7eb;
+  --elh-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --elh-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --elh-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --elh-shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  --elh-radius-md: 12px;
+  --elh-radius-sm: 8px;
+}
 
 /* 弹窗容器 */
 .elh-popup {
   position: absolute;
   z-index: 2147483647;
-  width: 380px;
-  max-width: calc(100vw - 32px);
-  max-height: 500px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  width: 400px; /* 稍微加宽 */
+  max-width: calc(100vw - 40px);
+  max-height: 600px;
+  background: var(--elh-bg-primary);
+  border-radius: var(--elh-radius-md);
+  box-shadow: var(--elh-shadow-float), 0 0 0 1px rgba(0,0,0,0.05); /* 增加1px边框阴影增加精致感 */
+  font-family: var(--elh-font-sans);
   font-size: 14px;
-  line-height: 1.5;
-  color: #333;
+  line-height: 1.6;
+  color: var(--elh-text-primary);
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  transform: translateY(10px) scale(0.98); /* 稍微缩小并下移，更自然的出现 */
+  transition: 
+    opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
+    visibility 0.25s;
+  backdrop-filter: blur(20px); /* 某些浏览器支持下的毛玻璃 */
 }
 
 .elh-popup-visible {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
-/* 弹窗头部 */
+/* 弹窗头部 - 极简主义设计 */
 .elh-popup-header {
   display: flex;
   align-items: center;
-  padding: 16px 16px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  gap: 8px;
+  padding: 16px 20px;
+  background: var(--elh-bg-primary); /* 去除渐变，回归纯净 */
+  border-bottom: 1px solid var(--elh-border-color);
+  gap: 12px;
+  cursor: move;
+  user-select: none;
 }
 
 .elh-popup-word {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--elh-text-primary);
+  letter-spacing: -0.01em;
   flex-shrink: 0;
 }
 
 .elh-popup-phonetic {
+  font-family: "Lucida Sans Unicode", "Arial Unicode MS", sans-serif;
+  font-size: 14px;
+  color: var(--elh-text-secondary);
+  background: var(--elh-bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* 按钮组 - 优雅的交互微动效 */
+.elh-popup-audio,
+.elh-popup-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent; /* 预留边框位置避免抖动 */
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--elh-text-secondary);
   font-size: 16px;
-  opacity: 0.9;
-  font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', sans-serif;
 }
 
 .elh-popup-audio {
-  margin-left: auto;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-left: auto; /* 推到右侧 */
 }
 
-.elh-popup-audio:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.elh-popup-audio:active {
-  transform: scale(0.95);
-}
-
-.elh-popup-close {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
+.elh-popup-audio:hover,
 .elh-popup-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--elh-bg-tertiary);
+  color: var(--elh-text-primary);
 }
 
-/* 弹窗内容 */
+.elh-popup-audio:active,
+.elh-popup-close:active {
+  transform: scale(0.95);
+  background: #e5e7eb;
+}
+
+/* 弹窗内容区域 */
 .elh-popup-content {
-  padding: 16px;
-  max-height: 250px;
+  padding: 0; /* padding由子元素控制 */
+  max-height: 280px;
   overflow-y: auto;
+  background: var(--elh-bg-primary);
 }
 
 .elh-popup-loading {
+  padding: 40px;
   text-align: center;
-  color: #888;
+  color: var(--elh-text-tertiary);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 词义展示改善 */
+.elh-popup-meanings {
   padding: 20px;
 }
 
-/* 词义组 */
 .elh-meaning-group {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .elh-meaning-group:last-child {
@@ -118,12 +157,11 @@
 
 .elh-part-of-speech {
   display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--elh-accent-color);
   margin-bottom: 8px;
 }
 
@@ -134,86 +172,101 @@
 }
 
 .elh-definition {
-  margin-bottom: 10px;
-  padding-left: 16px;
+  margin-bottom: 12px;
+  padding-left: 0;
   position: relative;
+  display: flex;
+  gap: 8px;
 }
 
 .elh-definition::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #667eea;
-  font-weight: bold;
+  content: '·'; /* 更优雅的点 */
+  font-weight: 900;
+  color: var(--elh-text-tertiary);
 }
 
 .elh-def-text {
-  color: #333;
+  color: var(--elh-text-primary);
+  font-weight: 400;
 }
 
 .elh-def-example {
+  display: block;
   margin-top: 4px;
-  font-style: italic;
-  color: #666;
+  color: var(--elh-text-tertiary);
   font-size: 13px;
-  padding-left: 8px;
-  border-left: 2px solid #e0e0e0;
+  font-family: var(--elh-font-serif); /* 例句使用衬线体增加文学感 */
+  font-style: italic;
+  padding-left: 0;
+  border-left: none;
 }
 
-/* 弹窗底部 */
+/* 底部操作区 */
 .elh-popup-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #eee;
-  background: #fafafa;
+  padding: 16px 20px;
+  border-top: 1px solid var(--elh-border-color);
+  background: var(--elh-bg-primary);
 }
 
 .elh-popup-ai-btn {
   width: 100%;
   padding: 10px 16px;
-  border: none;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  color: white;
-  border-radius: 8px;
+  border: 1px solid var(--elh-border-color); /* 描边风格，更克制 */
+  background: var(--elh-bg-primary);
+  color: var(--elh-text-primary);
+  border-radius: var(--elh-radius-sm);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: var(--elh-shadow-sm);
 }
 
 .elh-popup-ai-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
-}
-
-.elh-popup-ai-btn:active {
-  transform: translateY(0);
+  border-color: var(--elh-accent-color);
+  color: var(--elh-accent-color);
+  background: var(--elh-accent-subtle);
+  box-shadow: var(--elh-shadow-md);
 }
 
 .elh-ai-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
-/* AI 分析结果 */
+/* AI 分析结果区域 - 卡片式设计 */
 .elh-popup-ai-result {
-  padding: 16px;
-  border-top: 1px solid #eee;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-  max-height: 200px;
+  max-height: 250px;
+  padding: 20px;
+  background: var(--elh-bg-secondary);
+  border-top: 1px solid var(--elh-border-color);
   overflow-y: auto;
 }
 
 .elh-ai-loading {
-  text-align: center;
-  color: #666;
-  padding: 16px;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  color: var(--elh-text-tertiary);
+  font-size: 13px;
 }
 
 .elh-ai-section {
+  background: var(--elh-bg-primary);
+  border: 1px solid var(--elh-border-color);
+  border-radius: var(--elh-radius-sm);
+  padding: 16px;
   margin-bottom: 12px;
+  box-shadow: var(--elh-shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.elh-ai-section:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--elh-shadow-md);
 }
 
 .elh-ai-section:last-child {
@@ -221,92 +274,172 @@
 }
 
 .elh-ai-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #11998e;
-  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--elh-text-tertiary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .elh-ai-value {
-  color: #333;
   font-size: 13px;
+  color: var(--elh-text-secondary);
+  line-height: 1.6;
 }
 
-/* 错误和无结果 */
-.elh-error,
-.elh-no-result {
-  color: #d32f2f;
+.elh-ai-value strong {
+  color: var(--elh-text-primary);
+  font-weight: 600;
+}
+
+.elh-ai-value .sub-text {
+  color: var(--elh-text-tertiary);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 特殊标记样式 */
+.elh-ai-value .ipa {
+  font-family: "Lucida Sans Unicode", sans-serif;
+  color: var(--elh-text-primary);
+  background: var(--elh-bg-tertiary);
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+.elh-ai-value .example {
+  margin-top: 6px;
+  padding-left: 10px;
+  border-left: 2px solid var(--elh-border-color);
+  font-style: italic;
+  font-family: var(--elh-font-serif);
+}
+
+/* 错误提示 */
+.elh-error, .elh-ai-error {
+  color: #ef4444; /* red-500 */
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  padding: 12px;
+  border-radius: var(--elh-radius-sm);
+  font-size: 13px;
   text-align: center;
-  padding: 16px;
-  font-size: 13px;
 }
 
 .elh-no-result {
-  color: #888;
+  color: var(--elh-text-tertiary);
+  text-align: center;
+  font-style: italic;
 }
 
-/* 暗色模式 */
+/* 暗色模式适配 */
 @media (prefers-color-scheme: dark) {
-  .elh-popup {
-    background: #2d2d2d;
-    color: #e0e0e0;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  :root {
+    --elh-bg-primary: #1f2937; /* gray-800 */
+    --elh-bg-secondary: #111827; /* gray-900 */
+    --elh-bg-tertiary: #374151; /* gray-700 */
+    
+    --elh-text-primary: #f9fafb;
+    --elh-text-secondary: #d1d5db;
+    --elh-text-tertiary: #9ca3af;
+    
+    --elh-border-color: #374151;
+    --elh-accent-color: #60a5fa; /* blue-400 */
+    --elh-accent-hover: #93c5fd;
+    --elh-accent-subtle: rgba(37, 99, 235, 0.2);
+    
+    --elh-shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px #374151;
   }
   
   .elh-popup-header {
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    border-bottom-color: var(--elh-border-color);
   }
   
-  .elh-meaning-group {
-    border-color: #444;
-  }
-  
-  .elh-part-of-speech {
-    background: rgba(102, 126, 234, 0.2);
-  }
-  
-  .elh-def-text {
-    color: #e0e0e0;
-  }
-  
-  .elh-def-example {
-    color: #aaa;
-    border-left-color: #555;
-  }
-  
-  .elh-popup-footer {
-    background: #252525;
-    border-color: #444;
-  }
-  
-  .elh-popup-ai-result {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-color: #444;
-  }
-  
-  .elh-ai-value {
-    color: #e0e0e0;
+  .elh-popup-ai-btn:hover {
+    background: rgba(37, 99, 235, 0.3);
   }
 }
 
-/* 滚动条样式 */
+/* 滚动条美化 */
 .elh-popup-content::-webkit-scrollbar,
 .elh-popup-ai-result::-webkit-scrollbar {
-  width: 6px;
-}
-
-.elh-popup-content::-webkit-scrollbar-track,
-.elh-popup-ai-result::-webkit-scrollbar-track {
-  background: transparent;
+  width: 4px;
 }
 
 .elh-popup-content::-webkit-scrollbar-thumb,
 .elh-popup-ai-result::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
+  background: #d1d5db;
+  border-radius: 4px;
 }
 
 .elh-popup-content::-webkit-scrollbar-thumb:hover,
 .elh-popup-ai-result::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
+  background: #9ca3af;
+}
+
+/* 暗色模式滚动条 */
+/* 移动端适配 */
+@media screen and (max-width: 480px) {
+  .elh-popup {
+    /* Bottom Sheet 样式 */
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0;
+    
+    /* 固定在底部 */
+    position: fixed !important;
+    left: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    max-height: 80vh;
+    
+    transform: translateY(100%);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .elh-popup-visible {
+    transform: translateY(0);
+  }
+  
+  /* 头部增加拖拽条指示器 */
+  .elh-popup-header::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background-color: var(--elh-border-color);
+    border-radius: 2px;
+  }
+  
+  .elh-popup-header {
+    padding-top: 24px; /* 为指示条留出空间 */
+    justify-content: space-between;
+  }
+  
+  /* 在移动端隐藏拖拽光标，因为是固定底部的 */
+  .elh-popup-header {
+    cursor: default;
+  }
+  
+  /* 增大点击区域 */
+  .elh-popup-audio,
+  .elh-popup-close {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .elh-popup-content,
+  .elh-popup-ai-result {
+    /* 增加可滚动区域高度 */
+    max-height: 40vh;
+  }
 }

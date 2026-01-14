@@ -35,6 +35,106 @@ export function initDictionary() {
       hidePopup();
     }
   });
+
+  // 移动端/触摸适配：监听文本选择
+  // 当用户选中文本时，显示一个小的悬浮按钮"🔍"
+  document.addEventListener('selectionchange', handleSelectionChange);
+}
+
+// 触摸查词按钮元素
+let touchButton = null;
+
+// 显示查词按钮
+function showTouchButton(rect, word) {
+  if (!touchButton) {
+    touchButton = createElement('div', 'touch-btn');
+    touchButton.innerHTML = '🔍';
+    touchButton.style.cssText = `
+      position: absolute;
+      z-index: 2147483648;
+      width: 40px;
+      height: 40px;
+      background: var(--elh-bg-primary, #fff);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+    `;
+    document.body.appendChild(touchButton);
+    
+    // 点击按钮查词
+    touchButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // 获取当前选区
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      
+      // 更新当前单词状态 (供AI分析使用)
+      const container = range.commonAncestorContainer;
+      const contextElement = container.nodeType === 1 ? container : container.parentElement;
+      
+      currentWord = {
+        word: word,
+        element: null, // 选区查词没有特定的单词元素
+        sentence: getParagraphContext(contextElement) || contextElement.textContent // 尝试获取上下文
+      };
+      
+      showPopup(rect, word);
+      loadWordData(word);
+      
+      hideTouchButton();
+      // 清除选区，提升体验
+      selection.removeAllRanges();
+    });
+  }
+  
+  // 计算位置：在选区上方/下方居中
+  const top = rect.top + window.scrollY - 50; 
+  const left = rect.left + window.scrollX + (rect.width / 2) - 20;
+  
+  touchButton.style.top = `${top}px`;
+  touchButton.style.left = `${left}px`;
+  touchButton.style.display = 'flex';
+}
+
+function hideTouchButton() {
+  if (touchButton) {
+    touchButton.style.display = 'none';
+  }
+}
+
+// 节流处理选区变化
+let selectionTimeout;
+function handleSelectionChange() {
+  // 只在没有弹窗开启时处理
+  if (popupElement && popupElement.classList.contains(`${PLUGIN_PREFIX}popup-visible`)) return;
+
+  clearTimeout(selectionTimeout);
+  selectionTimeout = setTimeout(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      hideTouchButton();
+      return;
+    }
+    
+    const text = selection.toString().trim();
+    // 简单的英语单词检查：1-30个字母，不包含换行
+    if (/^[a-zA-Z\s-]{1,30}$/.test(text) && !text.includes('\n')) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      // 检查rect是否有效
+      if (rect.width > 0 && rect.height > 0) {
+        showTouchButton(rect, text);
+      }
+    } else {
+      hideTouchButton();
+    }
+  }, 300); // 300ms延迟，等待选区稳定
 }
 
 /**
@@ -71,6 +171,39 @@ function createPopupElement() {
   popupElement.querySelector(`.${PLUGIN_PREFIX}popup-close`).addEventListener('click', hidePopup);
   popupElement.querySelector(`.${PLUGIN_PREFIX}popup-audio`).addEventListener('click', handleAudioClick);
   popupElement.querySelector(`.${PLUGIN_PREFIX}popup-ai-btn`).addEventListener('click', handleAIAnalysis);
+  
+  // 拖拽功能
+  const header = popupElement.querySelector(`.${PLUGIN_PREFIX}popup-header`);
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  
+  header.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    const rect = popupElement.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    
+    // 防止选中文本
+    e.preventDefault();
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    
+    // 计算新位置 (相对于视口 + 滚动偏移)
+    const newLeft = e.clientX - dragOffsetX + window.scrollX;
+    const newTop = e.clientY - dragOffsetY + window.scrollY;
+    
+    popupElement.style.left = `${newLeft}px`;
+    popupElement.style.top = `${newTop}px`;
+  });
+  
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
 }
 
 /**
