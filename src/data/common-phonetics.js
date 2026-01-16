@@ -6,7 +6,7 @@
 export const COMMON_PHONETICS = {
   // Articles & Determiners
   'the': '/ðə/',
-  'a': '/eɪ/',
+  'a': '/ə/',
   'an': '/æn/',
   'this': '/ðɪs/',
   'that': '/ðæt/',
@@ -261,6 +261,7 @@ export const COMMON_PHONETICS = {
   'draw': '/drɔː/',
   'drew': '/druː/',
   'drawn': '/drɔːn/',
+  'artificial': '/ˌɑːrtɪˈfɪʃl/',
   
   // Common adjectives
   'good': '/gʊd/',
@@ -364,8 +365,8 @@ export const COMMON_PHONETICS = {
   'later': '/ˈleɪtər/',
   
   // Prepositions & Conjunctions
-  'to': '/tuː/',
-  'of': '/ʌv/',
+  'to': '/tə/',
+  'of': '/əv/',
   'in': '/ɪn/',
   'for': '/fɔːr/',
   'on': '/ɒn/',

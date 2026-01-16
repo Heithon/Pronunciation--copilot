@@ -47,7 +47,8 @@
         "src/api/*.js",
         "src/utils/*.js",
         "src/data/*.js",
-        "src/data/*.json"
+        "mass-ipa-data/*",
+        "mass-ipa-data/chunks/*"
       ],
       "matches": ["<all_urls>"]
     }

@@ -1,0 +1,26 @@
+{
+  "chunk-01": {
+    "start": "a bas",
+    "end": "zwolle",
+    "file": "chunks/chunk-01.json",
+    "count": 50000
+  },
+  "chunk-02": {
+    "start": "eriodictyon",
+    "end": "nukes",
+    "file": "chunks/chunk-02.json",
+    "count": 50000
+  },
+  "chunk-03": {
+    "start": "nuking",
+    "end": "thiocyanide",
+    "file": "chunks/chunk-03.json",
+    "count": 50000
+  },
+  "chunk-04": {
+    "start": "thiocyano",
+    "end": "zytron",
+    "file": "chunks/chunk-04.json",
+    "count": 16801
+  }
+}

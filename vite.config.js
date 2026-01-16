@@ -28,5 +28,7 @@ export default defineConfig({
   },
   resolve: {
     alias: { '@': '/src' }
-  }
+  },
+  // Don't bundle large JSON files from mass-ipa - will be copied manually
+  assetsInlineLimit: 0
 });

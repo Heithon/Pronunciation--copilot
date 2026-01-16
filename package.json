@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "cmu-pronouncing-dictionary": "^3.0.0"
+    "cmu-pronouncing-dictionary": "^3.0.0",
+    "ipa-dict": "^1.0.3",
+    "mass-ipa": "file:../Broad-IPA/mass-ipa-1.0.0.tgz"
   }
 }

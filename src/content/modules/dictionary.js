@@ -116,6 +116,12 @@ function handleSelectionChange() {
 
   clearTimeout(selectionTimeout);
   selectionTimeout = setTimeout(() => {
+    // 仅在移动端/小屏设备显示查词按钮 (宽<=768px)
+    if (window.innerWidth > 768) {
+      hideTouchButton();
+      return;
+    }
+
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
       hideTouchButton();
