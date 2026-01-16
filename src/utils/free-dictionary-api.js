@@ -7,8 +7,103 @@
 const apiCache = new Map();
 const MAX_CACHE_SIZE = 1000;
 
+// Request queue and throttling
+const apiQueue = [];
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL_MS = 200; // 200ms between requests
+const MAX_CONCURRENT_REQUESTS = 3;
+let activeRequests = 0;
+let isProcessingQueue = false;
+
 /**
- * Query Free Dictionary API for IPA pronunciation
+ * Process queued API requests with rate limiting
+ */
+async function processQueue() {
+  if (isProcessingQueue || activeRequests >= MAX_CONCURRENT_REQUESTS || apiQueue.length === 0) {
+    return;
+  }
+  
+  isProcessingQueue = true;
+  
+  // Throttle: ensure minimum interval between requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL_MS) {
+    setTimeout(() => {
+      isProcessingQueue = false;
+      processQueue();
+    }, MIN_REQUEST_INTERVAL_MS - timeSinceLastRequest);
+    return;
+  }
+  
+  const { word, resolve, reject } = apiQueue.shift();
+  activeRequests++;
+  lastRequestTime = Date.now();
+  
+  try {
+    const result = await fetchFromAPI(word);
+    resolve(result);
+  } catch (error) {
+    reject(error);
+  } finally {
+    activeRequests--;
+    isProcessingQueue = false;
+    
+    // Process next item in queue
+    if (apiQueue.length > 0) {
+      processQueue();
+    }
+  }
+}
+
+/**
+ * Actual API fetch function
+ */
+async function fetchFromAPI(word) {
+  const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    },
+    signal: AbortSignal.timeout(5000)
+  });
+  
+  if (!response.ok) {
+    return null;
+  }
+  
+  const data = await response.json();
+  
+  // Extract IPA from response
+  if (Array.isArray(data) && data.length > 0) {
+    const entry = data[0];
+    
+    if (entry.phonetics && Array.isArray(entry.phonetics)) {
+      for (const phonetic of entry.phonetics) {
+        if (phonetic.text) {
+          let ipa = phonetic.text.trim();
+          if (!ipa.startsWith('/')) ipa = '/' + ipa;
+          if (!ipa.endsWith('/')) ipa = ipa + '/';
+          return ipa;
+        }
+      }
+    }
+    
+    if (entry.phonetic) {
+      let ipa = entry.phonetic.trim();
+      if (!ipa.startsWith('/')) ipa = '/' + ipa;
+      if (!ipa.endsWith('/')) ipa = ipa + '/';
+      return ipa;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Query Free Dictionary API for IPA pronunciation (with queueing and rate limiting)
  * @param {string} word - Word to look up
  * @returns {Promise<string|null>} IPA pronunciation or null
  */
@@ -20,73 +115,18 @@ export async function queryFreeDictionary(word) {
     return apiCache.get(normalized);
   }
   
-  try {
-    // Free Dictionary API
-    const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalized)}`;
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      // Add timeout
-      signal: AbortSignal.timeout(5000) // 5 second timeout
-    });
-    
-    if (!response.ok) {
-      // Word not found or API error
-      apiCache.set(normalized, null);
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    // Extract IPA from response
-    if (Array.isArray(data) && data.length > 0) {
-      const entry = data[0];
-      
-      // Try to get IPA from phonetics array
-      if (entry.phonetics && Array.isArray(entry.phonetics)) {
-        for (const phonetic of entry.phonetics) {
-          if (phonetic.text) {
-            let ipa = phonetic.text.trim();
-            
-            // Ensure it's wrapped in slashes
-            if (!ipa.startsWith('/')) {
-              ipa = '/' + ipa;
-            }
-            if (!ipa.endsWith('/')) {
-              ipa = ipa + '/';
-            }
-            
-            // Cache the result
-            cacheResult(normalized, ipa);
-            
-            return ipa;
-          }
-        }
-      }
-      
-      // Also check if there's a direct phonetic field
-      if (entry.phonetic) {
-        let ipa = entry.phonetic.trim();
-        if (!ipa.startsWith('/')) {
-          ipa = '/' + ipa;
-        }
-        if (!ipa.endsWith('/')) {
-          ipa = ipa + '/';
-        }
-        
-        cacheResult(normalized, ipa);
-        return ipa;
-      }
-    }
-    
-    // No IPA found
+  // Add to queue and return promise
+  return new Promise((resolve, reject) => {
+    apiQueue.push({ word: normalized, resolve, reject });
+    processQueue(); // Start processing if not already running
+  }).then(result => {
+    // Cache the result
+    cacheResult(normalized, result);
+    return result;
+  }).catch(error => {
+    // Cache null on error to avoid repeated failed requests
     cacheResult(normalized, null);
-    return null;
     
-  } catch (error) {
     if (error.name === 'TimeoutError') {
       console.warn(`[Free Dictionary] Timeout querying "${word}"`);
     } else if (error.name === 'AbortError') {
@@ -95,10 +135,8 @@ export async function queryFreeDictionary(word) {
       console.warn(`[Free Dictionary] Error querying "${word}":`, error.message);
     }
     
-    // Cache null result to avoid repeated failed queries
-    cacheResult(normalized, null);
     return null;
-  }
+  });
 }
 
 /**

@@ -9,6 +9,19 @@
 let coreData = null;
 let chunkIndex = null;
 const chunkCache = new Map();
+const MAX_CACHED_CHUNKS = 2; // Keep only 2 most recent chunks to limit memory usage
+
+/**
+ * Evict oldest chunk from cache if limit exceeded
+ */
+function evictOldestChunk() {
+  if (chunkCache.size >= MAX_CACHED_CHUNKS) {
+    // Remove first (oldest) entry
+    const firstKey = chunkCache.keys().next().value;
+    chunkCache.delete(firstKey);
+    console.log(`[Mass-IPA] Evicted chunk ${firstKey} from cache to limit memory`);
+  }
+}
 
 /**
  * Load core dictionary from extension resources
@@ -90,6 +103,9 @@ async function loadChunk(chunkId) {
       throw new Error(`Failed to load ${chunkId}: ${response.status}`);
     }
     const chunkData = await response.json();
+    
+    // Evict oldest chunk if cache is full
+    evictOldestChunk();
     
     // Cache it
     chunkCache.set(chunkId, chunkData);

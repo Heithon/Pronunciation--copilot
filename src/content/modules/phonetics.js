@@ -23,6 +23,15 @@ let isProcessing = false;
 // MutationObserver 引用
 let phoneticsObserver = null;
 
+// Debounce timer for mutation handling
+let mutationTimer = null;
+const MUTATION_DEBOUNCE_MS = 150; // Wait 150ms before processing
+
+// IntersectionObserver for viewport-based lazy loading
+let viewportObserver = null;
+const VIEWPORT_MARGIN = '500px'; // Load 500px before content becomes visible
+const observedWrappers = new WeakSet(); // Track which wrappers are being observed
+
 /**
  * 初始化音标模块
  */
@@ -38,7 +47,10 @@ export function initPhonetics() {
     return phoneticsObserver;
   }
   
-  // 处理页面现有内容
+  // Initialize IntersectionObserver for lazy loading
+  setupViewportObserver();
+  
+  // 处理页面现有内容（使用懒加载）
   processPage();
   
   // 监听 DOM 变化
@@ -48,8 +60,44 @@ export function initPhonetics() {
     subtree: true
   });
   
-  console.log('[Phonetics] Initialized and observing DOM changes');
+  console.log('[Phonetics] Initialized with lazy loading and observing DOM changes');
   return phoneticsObserver;
+}
+
+/**
+ * 设置 IntersectionObserver 用于可视区域懒加载
+ */
+function setupViewportObserver() {
+  if (viewportObserver) return;
+  
+  viewportObserver = new IntersectionObserver(
+    handleIntersection,
+    {
+      root: null, // Use viewport as root
+      rootMargin: `${VIEWPORT_MARGIN} 0px ${VIEWPORT_MARGIN} 0px`, // Load ahead
+      threshold: 0 // Trigger as soon as any part is visible
+    }
+  );
+  
+  console.log(`[Phonetics] Viewport observer initialized with ${VIEWPORT_MARGIN} margin`);
+}
+
+/**
+ * 处理可视区域交叉事件
+ */
+function handleIntersection(entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const wrapper = entry.target;
+      
+      // Process phonetics for this wrapper
+      loadPhoneticsForWrapper(wrapper);
+      
+      // Stop observing once processed
+      viewportObserver.unobserve(wrapper);
+      observedWrappers.delete(wrapper);
+    }
+  });
 }
 
 /**
@@ -60,20 +108,39 @@ function processPage() {
 }
 
 /**
- * 处理 DOM 变化
+ * 处理 DOM 变化（带防抖）
  */
 function handleMutations(mutations) {
-  for (const mutation of mutations) {
-    if (mutation.type === 'childList') {
-      for (const node of mutation.addedNodes) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          walkTextNodes(node, processTextNode);
-        } else if (node.nodeType === Node.TEXT_NODE) {
-          processTextNode(node);
+  // Clear existing timer
+  if (mutationTimer) {
+    clearTimeout(mutationTimer);
+  }
+  
+  // Debounce: wait for mutations to settle before processing
+  mutationTimer = setTimeout(() => {
+    // Collect unique nodes to process
+    const nodesToProcess = new Set();
+    
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        for (const node of mutation.addedNodes) {
+          // Only process if not already in set
+          if (!nodesToProcess.has(node)) {
+            nodesToProcess.add(node);
+          }
         }
       }
     }
-  }
+    
+    // Process collected nodes
+    for (const node of nodesToProcess) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        walkTextNodes(node, processTextNode);
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        processTextNode(node);
+      }
+    }
+  }, MUTATION_DEBOUNCE_MS);
 }
 
 /**
@@ -127,8 +194,12 @@ function processTextNode(textNode) {
   if (textNode.parentNode) {
     textNode.parentNode.replaceChild(wrapper, textNode);
     
-    // 异步加载音标
-    loadPhoneticsForWrapper(wrapper);
+    // Use IntersectionObserver for lazy loading
+    // Only load phonetics when wrapper enters viewport
+    if (viewportObserver && !observedWrappers.has(wrapper)) {
+      viewportObserver.observe(wrapper);
+      observedWrappers.add(wrapper);
+    }
   }
 }
 
