@@ -4,6 +4,14 @@
  */
 
 export const COMMON_PHONETICS = {
+  // ===== Modern / Tech Terms / Compound Words =====
+  'biodiversity': '/ˌbaɪəʊdaɪˈvɜːsəti/',
+  'chatbot': '/ˈtʃætbɒt/',
+  'chatbots': '/ˈtʃætbɒts/',
+  'cryptocurrency': '/ˌkrɪptəʊˈkʌrənsi/',
+  'cryptocurrencies': '/ˌkrɪptəʊˈkʌrənsiz/',
+  
+  // ===== Common Words =====
   // Articles & Determiners
   'the': '/ðə/',
   'a': '/ə/',

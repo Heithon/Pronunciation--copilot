@@ -4,7 +4,7 @@
  * 使用 CMU 词典进行本地 IPA 转换
  */
 
-import { wordToIPASync } from '../../utils/ipa-converter.js';
+import { wordToIPASync, wordToIPA } from '../../utils/ipa-converter.js';
 import { createElement, walkTextNodes, shouldSkipNode, PLUGIN_PREFIX } from '../../utils/dom.js';
 
 // 内存缓存
@@ -139,56 +139,74 @@ function processTextNode(textNode) {
  */
 function createWordHtml(word) {
   const lowerWord = word.toLowerCase();
-  // Use IPA converter for instant lookup (sync version)
+  // Try sync lookup first (fast path for common words)
   const phonetic = wordToIPASync(lowerWord) || '';
+  
+  // If not found, mark for async loading
+  const needsAsync = !phonetic;
   
   return `<span class="${PLUGIN_PREFIX}word" data-word="${escapeHtml(lowerWord)}">` +
     `<span class="${PLUGIN_PREFIX}word-text">${escapeHtml(word)}</span>` +
-    `<span class="${PLUGIN_PREFIX}phonetic" data-loaded="${phonetic ? 'true' : 'false'}">${escapeHtml(phonetic)}</span>` +
+    `<span class="${PLUGIN_PREFIX}phonetic" data-loaded="${phonetic ? 'true' : 'false'}" data-needs-async="${needsAsync}">${escapeHtml(phonetic)}</span>` +
     `</span>`;
 }
 
 /**
- * 为包装元素加载音标（已废弃，现在IPA转换是同步的）
+ * 为包装元素加载音标（异步加载变形词音标）
  * @param {HTMLElement} wrapper 包装元素
  */
 async function loadPhoneticsForWrapper(wrapper) {
-  if (isProcessing || processingQueue.length === 0) return;
+  // Find all phonetic spans that need async loading
+  const phoneticSpans = wrapper.querySelectorAll(`[data-needs-async="true"]`);
   
-  isProcessing = true;
+  if (phoneticSpans.length === 0) return;
   
-  while (processingQueue.length > 0) {
-    // 批量处理
-    const batch = processingQueue.splice(0, 5);
+  // Process in batches to avoid overwhelming the system
+  const batchSize = 10;
+  for (let i = 0; i < phoneticSpans.length; i += batchSize) {
+    const batch = Array.from(phoneticSpans).slice(i, i + batchSize);
     
-    await Promise.all(batch.map(async ({ word, element }) => {
+    await Promise.all(batch.map(async (element) => {
+      const wordSpan = element.closest(`.${PLUGIN_PREFIX}word`);
+      if (!wordSpan) return;
+      
+      const word = wordSpan.dataset.word;
+      if (!word) return;
+      
       try {
-        // 再次检查缓存
+        // Check cache first
         if (phoneticsCache.has(word)) {
-          element.textContent = phoneticsCache.get(word);
-          element.dataset.loaded = 'true';
+          const cached = phoneticsCache.get(word);
+          if (element.isConnected && cached) {
+            element.textContent = cached;
+            element.dataset.loaded = 'true';
+            element.removeAttribute('data-needs-async');
+          }
           return;
         }
         
-        const data = await lookupWord(word);
-        const phonetic = data?.phonetic || '';
+        // Use async wordToIPA for inflection handling
+        const phonetic = await wordToIPA(word);
         
-        phoneticsCache.set(word, phonetic);
-        
-        if (element.isConnected) {
-          element.textContent = phonetic;
-          element.dataset.loaded = 'true';
+        if (phonetic) {
+          phoneticsCache.set(word, phonetic);
+          
+          if (element.isConnected) {
+            element.textContent = phonetic;
+            element.dataset.loaded = 'true';
+            element.removeAttribute('data-needs-async');
+          }
         }
       } catch (error) {
         console.error(`[Phonetics] Error loading phonetic for "${word}":`, error);
       }
     }));
     
-    // 添加小延迟避免过快请求
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Small delay between batches
+    if (i + batchSize < phoneticSpans.length) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
   }
-  
-  isProcessing = false;
 }
 
 /**

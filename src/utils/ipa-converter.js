@@ -5,6 +5,8 @@
 
 import { COMMON_PHONETICS } from '../data/common-phonetics.js';
 import { getIPA, getIPASync, hasWord as hasWordCore, hasWordFull, getIPABatch, initMassIPA, getStats } from './mass-ipa-adapter.js';
+import { getInflectedIPA } from './word-inflection.js';
+import { queryFreeDictionary } from './free-dictionary-api.js';
 
 /**
  * Convert English word to IPA (synchronous - core dictionary only)
@@ -28,6 +30,8 @@ export function wordToIPASync(word) {
 /**
  * Convert English word to IPA (async - full dictionary)
  * Includes rare words via lazy-loaded chunks
+ * Also handles inflected forms (plurals, past tense, gerunds)
+ * Falls back to Free Dictionary API if not found locally
  * @param {string} word - English word
  * @returns {Promise<string|null>} IPA notation or null
  */
@@ -35,13 +39,46 @@ export async function wordToIPA(word) {
   const normalized = word.toLowerCase().replace(/[^a-z'-]/g, '');
   if (!normalized) return null;
   
-  // Check common phonetics first
+  // Priority 1: Check common phonetics first (highest priority)
   if (COMMON_PHONETICS[normalized]) {
     return COMMON_PHONETICS[normalized];
   }
   
-  // Use mass-ipa full dictionary (with chunk loading)
-  return await getIPA(normalized);
+  // Priority 2: Try mass-ipa full dictionary (with chunk loading)
+  const directIPA = await getIPA(normalized);
+  if (directIPA) {
+    return directIPA;
+  }
+  
+  // Priority 3: Try inflection handling
+  // This will detect -ed, -s, -ing, -ly, -er, -est, -ity, -y and transform base form IPA
+  const inflectedIPA = await getInflectedIPA(normalized, async (baseWord) => {
+    // Check common phonetics for base form
+    if (COMMON_PHONETICS[baseWord]) {
+      return COMMON_PHONETICS[baseWord];
+    }
+    // Check mass-ipa for base form
+    return await getIPA(baseWord);
+  });
+  
+  if (inflectedIPA) {
+    return inflectedIPA;
+  }
+  
+  // Priority 4: Fallback to Free Dictionary API
+  // Only query API if all local methods failed
+  try {
+    const apiIPA = await queryFreeDictionary(normalized);
+    if (apiIPA) {
+      console.log(`[IPA Converter] Found via API: "${normalized}" -> ${apiIPA}`);
+      return apiIPA;
+    }
+  } catch (error) {
+    console.warn(`[IPA Converter] API fallback failed for "${normalized}":`, error);
+  }
+  
+  // Nothing found
+  return null;
 }
 
 /**
