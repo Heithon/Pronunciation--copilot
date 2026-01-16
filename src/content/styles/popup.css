@@ -32,13 +32,15 @@
 /* 弹窗容器 */
 .elh-popup {
   position: absolute;
+  top: 0; /* Force initial position to top-left to prevent page expansion */
+  left: 0;
   z-index: 2147483647;
-  width: 400px; /* 稍微加宽 */
+  width: 400px;
   max-width: calc(100vw - 40px);
   max-height: 600px;
   background: var(--elh-bg-primary);
   border-radius: var(--elh-radius-md);
-  box-shadow: var(--elh-shadow-float), 0 0 0 1px rgba(0,0,0,0.05); /* 增加1px边框阴影增加精致感 */
+  box-shadow: var(--elh-shadow-float), 0 0 0 1px rgba(0,0,0,0.05);
   font-family: var(--elh-font-sans);
   font-size: 14px;
   line-height: 1.6;
@@ -46,18 +48,23 @@
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px) scale(0.98); /* 稍微缩小并下移，更自然的出现 */
+  transform: translateY(10px) scale(0.98);
   transition: 
     opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
     transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
     visibility 0.25s;
-  backdrop-filter: blur(20px); /* 某些浏览器支持下的毛玻璃 */
+  backdrop-filter: blur(20px);
+  pointer-events: none; /* Prevent affecting page flow when hidden */
+  /* Key: Don't affect page height */
+  margin: 0 !important;
+  padding: 0; /* Remove any padding that might affect positioning */
 }
 
 .elh-popup-visible {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
+  pointer-events: auto; /* Enable clicks when visible */
 }
 
 /* 弹窗头部 - 极简主义设计 */
